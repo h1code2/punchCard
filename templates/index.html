@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <link href="https://cdn.bootcss.com/weui/1.0.1/style/weui.css" rel="stylesheet">
+    <link href="https://cdn.bootcss.com/limonte-sweetalert2/7.28.5/sweetalert2.css" rel="stylesheet">
+    <script src="{{ url_for('static',filename='js/jquery.js') }}"></script>
+    <script src="https://cdn.bootcss.com/limonte-sweetalert2/7.28.5/sweetalert2.js"></script>
+    <script src="{{ url_for('static',filename='js/zlajax.js') }}"></script>
+    <title>对分易自动签到系统</title>
+    <style>
+        h3 {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .punch-card-group {
+            margin-top: 60px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="punch-card-group">
+
+        <h3>对分易签到</h3>
+        <div class="weui-cells weui-m-group">
+            <div class="weui-cell">
+                <div class="weui-cell__bd">
+                    <input maxlength="4" minlength="4" name="code" class="weui-input" type="number"
+                           placeholder="请输入签到码">
+                </div>
+            </div>
+        </div>
+        <div class="weui-btn-area">
+            <a class="weui-btn weui-btn_primary" href="javascript:" id="punchCard-btn">批量签到</a>
+        </div>
+        <div id="result-group" class="weui-cells">
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+        $('#punchCard-btn').click(function (e) {
+            var codeInput = $('input[name=code]');
+            var resultList = $('#result-group');
+            resultList.html('');
+            var code = codeInput.val();
+            swal.queue([{
+                title: '自动签到提示',
+                confirmButtonText: '开始签到',
+                text:
+                    '将会为已收录的用户签到',
+                showLoaderOnConfirm: true,
+                preConfirm: function () {
+                    return new Promise(function (resolve) {
+                        $.post('{{ url_for('punchCard') }}',
+                            {
+                                code: code
+                            }).done(function (result) {
+                            var htmlG = '';
+                            for (var i = 0; i < result.data.length; i++) {
+                                console.log(result.data[i].name);
+                                htmlG += '<div class="weui-cell">\n' +
+                                    '                <div class="weui-cell__bd">\n' +
+                                    '                    <p>' + result.data[i].name + '</p>\n' +
+                                    '                </div>\n' +
+                                    '                <div class="weui-cell__ft">' + result.data[i].msg + '</div>\n' +
+                                    '            </div>';
+                            }
+                            resultList.html(htmlG);
+                            resolve()
+                        })
+                    })
+                }
+            }]);
+        });
+    })
+    ;
+</script>
+</body>
+</html>
